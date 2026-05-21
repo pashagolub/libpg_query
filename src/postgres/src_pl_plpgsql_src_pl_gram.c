@@ -3602,7 +3602,7 @@ yyreduce:
 
 							new = (PLpgSQL_stmt_fori *) (yyvsp[(3) - (4)].stmt);
 							new->lineno = plpgsql_location_to_lineno((yylsp[(2) - (4)]), yyscanner);
-						new->location = (yylsp[(2) - (4)]);
+							new->location = (yylsp[(2) - (4)]);
 							new->label = (yyvsp[(1) - (4)].str);
 							new->body = (yyvsp[(4) - (4)].loop_body).stmts;
 							(yyval.stmt) = (PLpgSQL_stmt *) new;
@@ -3617,7 +3617,7 @@ yyreduce:
 							/* forq is the common supertype of all three */
 							new = (PLpgSQL_stmt_forq *) (yyvsp[(3) - (4)].stmt);
 							new->lineno = plpgsql_location_to_lineno((yylsp[(2) - (4)]), yyscanner);
-						new->location = (yylsp[(2) - (4)]);
+							new->location = (yylsp[(2) - (4)]);
 							new->label = (yyvsp[(1) - (4)].str);
 							new->body = (yyvsp[(4) - (4)].loop_body).stmts;
 							(yyval.stmt) = (PLpgSQL_stmt *) new;
@@ -5843,7 +5843,7 @@ make_return_stmt(int location, YYSTYPE *yylvalp, YYLTYPE *yyllocp, yyscan_t yysc
 	new = palloc0(sizeof(PLpgSQL_stmt_return));
 	new->cmd_type = PLPGSQL_STMT_RETURN;
 	new->lineno = plpgsql_location_to_lineno(location, yyscanner);
-						new->location = location;
+	new->location = location;
 	new->stmtid = ++plpgsql_curr_compile->nstatements;
 	new->expr = NULL;
 	new->retvarno = -1;
@@ -5932,7 +5932,7 @@ make_return_next_stmt(int location, YYSTYPE *yylvalp, YYLTYPE *yyllocp, yyscan_t
 	new = palloc0(sizeof(PLpgSQL_stmt_return_next));
 	new->cmd_type = PLPGSQL_STMT_RETURN_NEXT;
 	new->lineno = plpgsql_location_to_lineno(location, yyscanner);
-						new->location = location;
+	new->location = location;
 	new->stmtid = ++plpgsql_curr_compile->nstatements;
 	new->expr = NULL;
 	new->retvarno = -1;
@@ -5997,7 +5997,7 @@ make_return_query_stmt(int location, YYSTYPE *yylvalp, YYLTYPE *yyllocp, yyscan_
 	new = palloc0(sizeof(PLpgSQL_stmt_return_query));
 	new->cmd_type = PLPGSQL_STMT_RETURN_QUERY;
 	new->lineno = plpgsql_location_to_lineno(location, yyscanner);
-						new->location = location;
+	new->location = location;
 	new->stmtid = ++plpgsql_curr_compile->nstatements;
 
 	/* check for RETURN QUERY EXECUTE */
@@ -6661,7 +6661,7 @@ make_case(int location, PLpgSQL_expr *t_expr,
 	new = palloc(sizeof(PLpgSQL_stmt_case));
 	new->cmd_type = PLPGSQL_STMT_CASE;
 	new->lineno = plpgsql_location_to_lineno(location, yyscanner);
-						new->location = location;
+	new->location = location;
 	new->stmtid = ++plpgsql_curr_compile->nstatements;
 	new->t_expr = t_expr;
 	new->t_varno = 0;
