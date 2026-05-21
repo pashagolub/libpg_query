@@ -236,6 +236,7 @@ dump_block(StringInfo out, PLpgSQL_stmt_block *node)
 	WRITE_NODE_TYPE("PLpgSQL_stmt_block");
 
 	WRITE_INT_FIELD(lineno, lineno, lineno);
+	WRITE_INT_FIELD(location, location, location);
 	WRITE_STRING_FIELD(label, label, label);
 	WRITE_STATEMENTS_FIELD(body);
 	WRITE_OBJ_FIELD(exceptions, dump_exception_block);
@@ -286,6 +287,7 @@ dump_assign(StringInfo out, PLpgSQL_stmt_assign *node)
 	WRITE_NODE_TYPE("PLpgSQL_stmt_assign");
 
 	WRITE_INT_FIELD(lineno, lineno, lineno);
+	WRITE_INT_FIELD(location, location, location);
 	WRITE_INT_FIELD(varno, varno, varno);
 	WRITE_EXPR_FIELD(expr);
 }
@@ -296,6 +298,7 @@ dump_if(StringInfo out, PLpgSQL_stmt_if *node)
 	WRITE_NODE_TYPE("PLpgSQL_stmt_if");
 
 	WRITE_INT_FIELD(lineno, lineno, lineno);
+	WRITE_INT_FIELD(location, location, location);
 	WRITE_EXPR_FIELD(cond);
 	WRITE_STATEMENTS_FIELD(then_body);
 	WRITE_LIST_FIELD(elsif_list, PLpgSQL_if_elsif, dump_if_elsif);
@@ -308,6 +311,7 @@ dump_if_elsif(StringInfo out, PLpgSQL_if_elsif *node)
 	WRITE_NODE_TYPE("PLpgSQL_if_elsif");
 
 	WRITE_INT_FIELD(lineno, lineno, lineno);
+	WRITE_INT_FIELD(location, location, location);
 	WRITE_EXPR_FIELD(cond);
 	WRITE_STATEMENTS_FIELD(stmts);
 }
@@ -320,6 +324,7 @@ dump_case(StringInfo out, PLpgSQL_stmt_case *node)
 	WRITE_NODE_TYPE("PLpgSQL_stmt_case");
 
 	WRITE_INT_FIELD(lineno, lineno, lineno);
+	WRITE_INT_FIELD(location, location, location);
 	WRITE_EXPR_FIELD(t_expr);
 	WRITE_INT_FIELD(t_varno, t_varno, t_varno);
 	WRITE_LIST_FIELD(case_when_list, PLpgSQL_case_when, dump_case_when);
@@ -333,6 +338,7 @@ dump_case_when(StringInfo out, PLpgSQL_case_when *node)
 	WRITE_NODE_TYPE("PLpgSQL_case_when");
 
 	WRITE_INT_FIELD(lineno, lineno, lineno);
+	WRITE_INT_FIELD(location, location, location);
 	WRITE_EXPR_FIELD(expr);
 	WRITE_STATEMENTS_FIELD(stmts);
 }
@@ -343,6 +349,7 @@ dump_loop(StringInfo out, PLpgSQL_stmt_loop *node)
 	WRITE_NODE_TYPE("PLpgSQL_stmt_loop");
 
 	WRITE_INT_FIELD(lineno, lineno, lineno);
+	WRITE_INT_FIELD(location, location, location);
 	WRITE_STRING_FIELD(label, label, label);
 	WRITE_STATEMENTS_FIELD(body);
 }
@@ -353,6 +360,7 @@ dump_while(StringInfo out, PLpgSQL_stmt_while *node)
 	WRITE_NODE_TYPE("PLpgSQL_stmt_while");
 
 	WRITE_INT_FIELD(lineno, lineno, lineno);
+	WRITE_INT_FIELD(location, location, location);
 	WRITE_STRING_FIELD(label, label, label);
 	WRITE_EXPR_FIELD(cond);
 	WRITE_STATEMENTS_FIELD(body);
@@ -365,6 +373,7 @@ dump_fori(StringInfo out, PLpgSQL_stmt_fori *node)
 	WRITE_NODE_TYPE("PLpgSQL_stmt_fori");
 
 	WRITE_INT_FIELD(lineno, lineno, lineno);
+	WRITE_INT_FIELD(location, location, location);
 	WRITE_STRING_FIELD(label, label, label);
 	WRITE_VAR_FIELD(var);
 	WRITE_EXPR_FIELD(lower);
@@ -380,6 +389,7 @@ dump_fors(StringInfo out, PLpgSQL_stmt_fors *node)
 	WRITE_NODE_TYPE("PLpgSQL_stmt_fors");
 
 	WRITE_INT_FIELD(lineno, lineno, lineno);
+	WRITE_INT_FIELD(location, location, location);
 	WRITE_STRING_FIELD(label, label, label);
 	WRITE_VARIABLE_FIELD(var);
 	WRITE_STATEMENTS_FIELD(body);
@@ -392,6 +402,7 @@ dump_forc(StringInfo out, PLpgSQL_stmt_forc *node)
 	WRITE_NODE_TYPE("PLpgSQL_stmt_forc");
 
 	WRITE_INT_FIELD(lineno, lineno, lineno);
+	WRITE_INT_FIELD(location, location, location);
 	WRITE_STRING_FIELD(label, label, label);
 	WRITE_VARIABLE_FIELD(var);
 	WRITE_STATEMENTS_FIELD(body);
@@ -405,6 +416,7 @@ dump_foreach_a(StringInfo out, PLpgSQL_stmt_foreach_a *node)
 	WRITE_NODE_TYPE("PLpgSQL_stmt_foreach_a");
 
 	WRITE_INT_FIELD(lineno, lineno, lineno);
+	WRITE_INT_FIELD(location, location, location);
 	WRITE_STRING_FIELD(label, label, label);
 	WRITE_INT_FIELD(varno, varno, varno);
 	WRITE_INT_FIELD(slice, slice, slice);
@@ -418,6 +430,7 @@ dump_open(StringInfo out, PLpgSQL_stmt_open *node)
 	WRITE_NODE_TYPE("PLpgSQL_stmt_open");
 
 	WRITE_INT_FIELD(lineno, lineno, lineno);
+	WRITE_INT_FIELD(location, location, location);
 	WRITE_INT_FIELD(curvar, curvar, curvar);
 	WRITE_INT_FIELD(cursor_options, cursor_options, cursor_options);
 	WRITE_EXPR_FIELD(argquery);
@@ -432,6 +445,7 @@ dump_fetch(StringInfo out, PLpgSQL_stmt_fetch *node)
 	WRITE_NODE_TYPE("PLpgSQL_stmt_fetch");
 
 	WRITE_INT_FIELD(lineno, lineno, lineno);
+	WRITE_INT_FIELD(location, location, location);
 	WRITE_VARIABLE_FIELD(target);
 	WRITE_INT_FIELD(curvar, curvar, curvar);
 	WRITE_ENUM_FIELD(direction, direction, direction);
@@ -447,6 +461,7 @@ dump_close(StringInfo out, PLpgSQL_stmt_close *node)
 	WRITE_NODE_TYPE("PLpgSQL_stmt_close");
 
 	WRITE_INT_FIELD(lineno, lineno, lineno);
+	WRITE_INT_FIELD(location, location, location);
 	WRITE_INT_FIELD(curvar, curvar, curvar);
 }
 
@@ -456,6 +471,7 @@ dump_perform(StringInfo out, PLpgSQL_stmt_perform *node)
 	WRITE_NODE_TYPE("PLpgSQL_stmt_perform");
 
 	WRITE_INT_FIELD(lineno, lineno, lineno);
+	WRITE_INT_FIELD(location, location, location);
 	WRITE_EXPR_FIELD(expr);
 }
 
@@ -465,6 +481,7 @@ dump_call(StringInfo out, PLpgSQL_stmt_call *node)
 	WRITE_NODE_TYPE("PLpgSQL_stmt_call");
 
 	WRITE_INT_FIELD(lineno, lineno, lineno);
+	WRITE_INT_FIELD(location, location, location);
 	WRITE_EXPR_FIELD(expr);
 	WRITE_BOOL_FIELD(is_call, is_call, is_call);
 	WRITE_VARIABLE_FIELD(target);
@@ -476,6 +493,7 @@ dump_commit(StringInfo out, PLpgSQL_stmt_commit *node)
 	WRITE_NODE_TYPE("PLpgSQL_stmt_commit");
 
 	WRITE_INT_FIELD(lineno, lineno, lineno);
+	WRITE_INT_FIELD(location, location, location);
 	WRITE_BOOL_FIELD(chain, chain, chain);
 }
 
@@ -485,6 +503,7 @@ dump_rollback(StringInfo out, PLpgSQL_stmt_rollback *node)
 	WRITE_NODE_TYPE("PLpgSQL_stmt_rollback");
 
 	WRITE_INT_FIELD(lineno, lineno, lineno);
+	WRITE_INT_FIELD(location, location, location);
 	WRITE_BOOL_FIELD(chain, chain, chain);
 }
 
@@ -494,6 +513,7 @@ dump_exit(StringInfo out, PLpgSQL_stmt_exit *node)
 	WRITE_NODE_TYPE("PLpgSQL_stmt_exit");
 
 	WRITE_INT_FIELD(lineno, lineno, lineno);
+	WRITE_INT_FIELD(location, location, location);
 	WRITE_BOOL_FIELD(is_exit, is_exit, is_exit);
 	WRITE_STRING_FIELD(label, label, label);
 	WRITE_EXPR_FIELD(cond);
@@ -505,6 +525,7 @@ dump_return(StringInfo out, PLpgSQL_stmt_return *node)
 	WRITE_NODE_TYPE("PLpgSQL_stmt_return");
 
 	WRITE_INT_FIELD(lineno, lineno, lineno);
+	WRITE_INT_FIELD(location, location, location);
 	WRITE_EXPR_FIELD(expr);
 	//WRITE_INT_FIELD(retvarno);
 }
@@ -515,6 +536,7 @@ dump_return_next(StringInfo out, PLpgSQL_stmt_return_next *node)
 	WRITE_NODE_TYPE("PLpgSQL_stmt_return_next");
 
 	WRITE_INT_FIELD(lineno, lineno, lineno);
+	WRITE_INT_FIELD(location, location, location);
 	WRITE_EXPR_FIELD(expr);
 	//WRITE_INT_FIELD(retvarno);
 }
@@ -525,6 +547,7 @@ dump_return_query(StringInfo out, PLpgSQL_stmt_return_query *node)
 	WRITE_NODE_TYPE("PLpgSQL_stmt_return_query");
 
 	WRITE_INT_FIELD(lineno, lineno, lineno);
+	WRITE_INT_FIELD(location, location, location);
 	WRITE_EXPR_FIELD(query);
 	WRITE_EXPR_FIELD(dynquery);
 	WRITE_LIST_FIELD(params, PLpgSQL_expr, dump_expr);
@@ -536,6 +559,7 @@ dump_raise(StringInfo out, PLpgSQL_stmt_raise *node)
 	WRITE_NODE_TYPE("PLpgSQL_stmt_raise");
 
 	WRITE_INT_FIELD(lineno, lineno, lineno);
+	WRITE_INT_FIELD(location, location, location);
 	WRITE_INT_FIELD(elog_level, elog_level, elog_level);
 	WRITE_STRING_FIELD(condname, condname, condname);
 	WRITE_STRING_FIELD(message, message, message);
@@ -558,6 +582,7 @@ dump_assert(StringInfo out, PLpgSQL_stmt_assert *node)
 	WRITE_NODE_TYPE("PLpgSQL_stmt_assert");
 
 	WRITE_INT_FIELD(lineno, lineno, lineno);
+	WRITE_INT_FIELD(location, location, location);
 	WRITE_EXPR_FIELD(cond);
 	WRITE_EXPR_FIELD(message);
 }
@@ -568,6 +593,7 @@ dump_execsql(StringInfo out, PLpgSQL_stmt_execsql *node)
 	WRITE_NODE_TYPE("PLpgSQL_stmt_execsql");
 
 	WRITE_INT_FIELD(lineno, lineno, lineno);
+	WRITE_INT_FIELD(location, location, location);
 	WRITE_EXPR_FIELD(sqlstmt);
 	//WRITE_BOOL_FIELD(mod_stmt); // This is only populated when executing the function
 	WRITE_BOOL_FIELD(into, into, into);
@@ -581,6 +607,7 @@ dump_dynexecute(StringInfo out, PLpgSQL_stmt_dynexecute *node)
 	WRITE_NODE_TYPE("PLpgSQL_stmt_dynexecute");
 
 	WRITE_INT_FIELD(lineno, lineno, lineno);
+	WRITE_INT_FIELD(location, location, location);
 	WRITE_EXPR_FIELD(query);
 	WRITE_BOOL_FIELD(into, into, into);
 	WRITE_BOOL_FIELD(strict, strict, strict);
@@ -594,6 +621,7 @@ dump_dynfors(StringInfo out, PLpgSQL_stmt_dynfors *node)
 	WRITE_NODE_TYPE("PLpgSQL_stmt_dynfors");
 
 	WRITE_INT_FIELD(lineno, lineno, lineno);
+	WRITE_INT_FIELD(location, location, location);
 	WRITE_STRING_FIELD(label, label, label);
 	WRITE_VARIABLE_FIELD(var);
 	WRITE_STATEMENTS_FIELD(body);
@@ -607,6 +635,7 @@ dump_getdiag(StringInfo out, PLpgSQL_stmt_getdiag *node)
 	WRITE_NODE_TYPE("PLpgSQL_stmt_getdiag");
 
 	WRITE_INT_FIELD(lineno, lineno, lineno);
+	WRITE_INT_FIELD(location, location, location);
 	WRITE_BOOL_FIELD(is_stacked, is_stacked, is_stacked);
 	WRITE_LIST_FIELD(diag_items, PLpgSQL_diag_item, dump_getdiag_item);
 }
@@ -680,6 +709,7 @@ dump_var(StringInfo out, PLpgSQL_var *node)
 
 	WRITE_STRING_FIELD(refname, refname, refname);
 	WRITE_INT_FIELD(lineno, lineno, lineno);
+	WRITE_INT_FIELD(location, location, location);
 	WRITE_OBJ_FIELD(datatype, dump_type);
 	WRITE_BOOL_FIELD(isconst, isconst, isconst);
 	WRITE_BOOL_FIELD(notnull, notnull, notnull);
@@ -726,6 +756,7 @@ dump_row(StringInfo out, PLpgSQL_row *node)
 
 	WRITE_STRING_FIELD(refname, refname, refname);
 	WRITE_INT_FIELD(lineno, lineno, lineno);
+	WRITE_INT_FIELD(location, location, location);
 
 	appendStringInfoString(out, "\"fields\":");
 	appendStringInfoChar(out, '[');
@@ -754,6 +785,7 @@ dump_record(StringInfo out, PLpgSQL_rec *node) {
 	WRITE_STRING_FIELD(refname, refname, refname);
 	WRITE_INT_FIELD(dno, dno, dno);
 	WRITE_INT_FIELD(lineno, lineno, lineno);
+	WRITE_INT_FIELD(location, location, location);
 }
 
 static void
