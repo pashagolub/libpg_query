@@ -1,0 +1,503 @@
+commit 0000000000000000000000000000000000000000
+Author: libpg_query <noreply@libpg_query>
+Date:   Thu May 21 00:00:00 2026 +0000
+
+    PL/pgSQL: Add byte-offset location info to all statement and variable nodes
+
+    Adds an `int location` field to every PL/pgSQL statement struct
+    (PLpgSQL_stmt_* types), to PLpgSQL_exception, PLpgSQL_if_elsif,
+    PLpgSQL_case_when, and the four variable types (PLpgSQL_var,
+    PLpgSQL_row, PLpgSQL_rec, PLpgSQL_recfield).  The field is populated
+    in the grammar actions (pl_gram.y) by assigning the bison location
+    token (@N) immediately after the existing lineno assignment.
+
+    This allows callers of pg_query_parse_plpgsql() to obtain exact byte
+    offsets for each statement or variable declaration, which is needed
+    for accurate source-location reporting.
+
+diff --git a/src/pl/plpgsql/src/plpgsql.h b/src/pl/plpgsql/src/plpgsql.h
+--- a/src/pl/plpgsql/src/plpgsql.h
++++ b/src/pl/plpgsql/src/plpgsql.h
+@@ -313,6 +313,7 @@
+ 	int			dno;
+ 	char	   *refname;
+ 	int			lineno;
++	int			location;
+ 	bool		isconst;
+ 	bool		notnull;
+ 	PLpgSQL_expr *default_val;
+@@ -335,6 +336,7 @@
+ 	int			dno;
+ 	char	   *refname;
+ 	int			lineno;
++	int			location;
+ 	bool		isconst;
+ 	bool		notnull;
+ 	PLpgSQL_expr *default_val;
+@@ -389,6 +391,7 @@
+ 	int			dno;
+ 	char	   *refname;
+ 	int			lineno;
++	int			location;
+ 	bool		isconst;
+ 	bool		notnull;
+ 	PLpgSQL_expr *default_val;
+@@ -415,6 +418,7 @@
+ 	int			dno;
+ 	char	   *refname;
+ 	int			lineno;
++	int			location;
+ 	bool		isconst;
+ 	bool		notnull;
+ 	PLpgSQL_expr *default_val;
+@@ -484,6 +488,7 @@
+ 	 * per-statement metrics.
+ 	 */
+ 	unsigned int stmtid;
++	int			location;
+ } PLpgSQL_stmt;
+ 
+ /*
+@@ -515,6 +520,7 @@
+ typedef struct PLpgSQL_exception
+ {
+ 	int			lineno;
++	int			location;
+ 	PLpgSQL_condition *conditions;
+ 	List	   *action;			/* List of statements */
+ } PLpgSQL_exception;
+@@ -527,6 +533,7 @@
+ 	PLpgSQL_stmt_type cmd_type;
+ 	int			lineno;
+ 	unsigned int stmtid;
++	int			location;
+ 	char	   *label;
+ 	List	   *body;			/* List of statements */
+ 	int			n_initvars;		/* Length of initvarnos[] */
+@@ -542,6 +549,7 @@
+ 	PLpgSQL_stmt_type cmd_type;
+ 	int			lineno;
+ 	unsigned int stmtid;
++	int			location;
+ 	int			varno;
+ 	PLpgSQL_expr *expr;
+ } PLpgSQL_stmt_assign;
+@@ -554,6 +562,7 @@
+ 	PLpgSQL_stmt_type cmd_type;
+ 	int			lineno;
+ 	unsigned int stmtid;
++	int			location;
+ 	PLpgSQL_expr *expr;
+ } PLpgSQL_stmt_perform;
+ 
+@@ -565,6 +574,7 @@
+ 	PLpgSQL_stmt_type cmd_type;
+ 	int			lineno;
+ 	unsigned int stmtid;
++	int			location;
+ 	PLpgSQL_expr *expr;
+ 	bool		is_call;
+ 	PLpgSQL_variable *target;
+@@ -578,6 +588,7 @@
+ 	PLpgSQL_stmt_type cmd_type;
+ 	int			lineno;
+ 	unsigned int stmtid;
++	int			location;
+ 	bool		chain;
+ } PLpgSQL_stmt_commit;
+ 
+@@ -589,6 +600,7 @@
+ 	PLpgSQL_stmt_type cmd_type;
+ 	int			lineno;
+ 	unsigned int stmtid;
++	int			location;
+ 	bool		chain;
+ } PLpgSQL_stmt_rollback;
+ 
+@@ -609,6 +621,7 @@
+ 	PLpgSQL_stmt_type cmd_type;
+ 	int			lineno;
+ 	unsigned int stmtid;
++	int			location;
+ 	bool		is_stacked;		/* STACKED or CURRENT diagnostics area? */
+ 	List	   *diag_items;		/* List of PLpgSQL_diag_item */
+ } PLpgSQL_stmt_getdiag;
+@@ -621,6 +634,7 @@
+ 	PLpgSQL_stmt_type cmd_type;
+ 	int			lineno;
+ 	unsigned int stmtid;
++	int			location;
+ 	PLpgSQL_expr *cond;			/* boolean expression for THEN */
+ 	List	   *then_body;		/* List of statements */
+ 	List	   *elsif_list;		/* List of PLpgSQL_if_elsif structs */
+@@ -633,6 +647,7 @@
+ typedef struct PLpgSQL_if_elsif
+ {
+ 	int			lineno;
++	int			location;
+ 	PLpgSQL_expr *cond;			/* boolean expression for this case */
+ 	List	   *stmts;			/* List of statements */
+ } PLpgSQL_if_elsif;
+@@ -645,6 +660,7 @@
+ 	PLpgSQL_stmt_type cmd_type;
+ 	int			lineno;
+ 	unsigned int stmtid;
++	int			location;
+ 	PLpgSQL_expr *t_expr;		/* test expression, or NULL if none */
+ 	int			t_varno;		/* var to store test expression value into */
+ 	List	   *case_when_list; /* List of PLpgSQL_case_when structs */
+@@ -658,6 +674,7 @@
+ typedef struct PLpgSQL_case_when
+ {
+ 	int			lineno;
++	int			location;
+ 	PLpgSQL_expr *expr;			/* boolean expression for this case */
+ 	List	   *stmts;			/* List of statements */
+ } PLpgSQL_case_when;
+@@ -670,6 +687,7 @@
+ 	PLpgSQL_stmt_type cmd_type;
+ 	int			lineno;
+ 	unsigned int stmtid;
++	int			location;
+ 	char	   *label;
+ 	List	   *body;			/* List of statements */
+ } PLpgSQL_stmt_loop;
+@@ -682,6 +700,7 @@
+ 	PLpgSQL_stmt_type cmd_type;
+ 	int			lineno;
+ 	unsigned int stmtid;
++	int			location;
+ 	char	   *label;
+ 	PLpgSQL_expr *cond;
+ 	List	   *body;			/* List of statements */
+@@ -695,6 +714,7 @@
+ 	PLpgSQL_stmt_type cmd_type;
+ 	int			lineno;
+ 	unsigned int stmtid;
++	int			location;
+ 	char	   *label;
+ 	PLpgSQL_var *var;
+ 	PLpgSQL_expr *lower;
+@@ -714,6 +734,7 @@
+ 	PLpgSQL_stmt_type cmd_type;
+ 	int			lineno;
+ 	unsigned int stmtid;
++	int			location;
+ 	char	   *label;
+ 	PLpgSQL_variable *var;		/* Loop variable (record or row) */
+ 	List	   *body;			/* List of statements */
+@@ -727,6 +748,7 @@
+ 	PLpgSQL_stmt_type cmd_type;
+ 	int			lineno;
+ 	unsigned int stmtid;
++	int			location;
+ 	char	   *label;
+ 	PLpgSQL_variable *var;		/* Loop variable (record or row) */
+ 	List	   *body;			/* List of statements */
+@@ -742,6 +764,7 @@
+ 	PLpgSQL_stmt_type cmd_type;
+ 	int			lineno;
+ 	unsigned int stmtid;
++	int			location;
+ 	char	   *label;
+ 	PLpgSQL_variable *var;		/* Loop variable (record or row) */
+ 	List	   *body;			/* List of statements */
+@@ -758,6 +781,7 @@
+ 	PLpgSQL_stmt_type cmd_type;
+ 	int			lineno;
+ 	unsigned int stmtid;
++	int			location;
+ 	char	   *label;
+ 	PLpgSQL_variable *var;		/* Loop variable (record or row) */
+ 	List	   *body;			/* List of statements */
+@@ -774,6 +798,7 @@
+ 	PLpgSQL_stmt_type cmd_type;
+ 	int			lineno;
+ 	unsigned int stmtid;
++	int			location;
+ 	char	   *label;
+ 	int			varno;			/* loop target variable */
+ 	int			slice;			/* slice dimension, or 0 */
+@@ -789,6 +814,7 @@
+ 	PLpgSQL_stmt_type cmd_type;
+ 	int			lineno;
+ 	unsigned int stmtid;
++	int			location;
+ 	int			curvar;
+ 	int			cursor_options;
+ 	PLpgSQL_expr *argquery;
+@@ -805,6 +831,7 @@
+ 	PLpgSQL_stmt_type cmd_type;
+ 	int			lineno;
+ 	unsigned int stmtid;
++	int			location;
+ 	PLpgSQL_variable *target;	/* target (record or row) */
+ 	int			curvar;			/* cursor variable to fetch from */
+ 	FetchDirection direction;	/* fetch direction */
+@@ -822,6 +849,7 @@
+ 	PLpgSQL_stmt_type cmd_type;
+ 	int			lineno;
+ 	unsigned int stmtid;
++	int			location;
+ 	int			curvar;
+ } PLpgSQL_stmt_close;
+ 
+@@ -833,6 +861,7 @@
+ 	PLpgSQL_stmt_type cmd_type;
+ 	int			lineno;
+ 	unsigned int stmtid;
++	int			location;
+ 	bool		is_exit;		/* Is this an exit or a continue? */
+ 	char	   *label;			/* NULL if it's an unlabeled EXIT/CONTINUE */
+ 	PLpgSQL_expr *cond;
+@@ -846,6 +875,7 @@
+ 	PLpgSQL_stmt_type cmd_type;
+ 	int			lineno;
+ 	unsigned int stmtid;
++	int			location;
+ 	PLpgSQL_expr *expr;
+ 	int			retvarno;
+ } PLpgSQL_stmt_return;
+@@ -858,6 +888,7 @@
+ 	PLpgSQL_stmt_type cmd_type;
+ 	int			lineno;
+ 	unsigned int stmtid;
++	int			location;
+ 	PLpgSQL_expr *expr;
+ 	int			retvarno;
+ } PLpgSQL_stmt_return_next;
+@@ -870,6 +901,7 @@
+ 	PLpgSQL_stmt_type cmd_type;
+ 	int			lineno;
+ 	unsigned int stmtid;
++	int			location;
+ 	PLpgSQL_expr *query;		/* if static query */
+ 	PLpgSQL_expr *dynquery;		/* if dynamic query (RETURN QUERY EXECUTE) */
+ 	List	   *params;			/* USING arguments for dynamic query */
+@@ -883,6 +915,7 @@
+ 	PLpgSQL_stmt_type cmd_type;
+ 	int			lineno;
+ 	unsigned int stmtid;
++	int			location;
+ 	int			elog_level;
+ 	char	   *condname;		/* condition name, SQLSTATE, or NULL */
+ 	char	   *message;		/* old-style message format literal, or NULL */
+@@ -907,6 +940,7 @@
+ 	PLpgSQL_stmt_type cmd_type;
+ 	int			lineno;
+ 	unsigned int stmtid;
++	int			location;
+ 	PLpgSQL_expr *cond;
+ 	PLpgSQL_expr *message;
+ } PLpgSQL_stmt_assert;
+@@ -919,6 +953,7 @@
+ 	PLpgSQL_stmt_type cmd_type;
+ 	int			lineno;
+ 	unsigned int stmtid;
++	int			location;
+ 	PLpgSQL_expr *sqlstmt;
+ 	bool		mod_stmt;		/* is the stmt INSERT/UPDATE/DELETE/MERGE? */
+ 	bool		mod_stmt_set;	/* is mod_stmt valid yet? */
+@@ -935,6 +970,7 @@
+ 	PLpgSQL_stmt_type cmd_type;
+ 	int			lineno;
+ 	unsigned int stmtid;
++	int			location;
+ 	PLpgSQL_expr *query;		/* string expression */
+ 	bool		into;			/* INTO supplied? */
+ 	bool		strict;			/* INTO STRICT flag */
+diff --git a/src/pl/plpgsql/src/pl_gram.y b/src/pl/plpgsql/src/pl_gram.y
+--- a/src/pl/plpgsql/src/pl_gram.y
++++ b/src/pl/plpgsql/src/pl_gram.y
+@@ -431,6 +431,7 @@
+ 
+ 						new->cmd_type	= PLPGSQL_STMT_BLOCK;
+ 						new->lineno		= plpgsql_location_to_lineno(@2, yyscanner);
++						new->location = @2;
+ 						new->stmtid		= ++plpgsql_curr_compile->nstatements;
+ 						new->label		= $1.label;
+ 						new->n_initvars = $1.n_initvars;
+@@ -611,6 +612,7 @@
+ 						new->dtype = PLPGSQL_DTYPE_ROW;
+ 						new->refname = "(unnamed row)";
+ 						new->lineno = plpgsql_location_to_lineno(@1, yyscanner);
++						new->location = @1;
+ 						new->rowtupdesc = NULL;
+ 						new->nfields = list_length($2);
+ 						new->fieldnames = palloc(new->nfields * sizeof(char *));
+@@ -902,6 +904,7 @@
+ 						new = palloc0(sizeof(PLpgSQL_stmt_perform));
+ 						new->cmd_type = PLPGSQL_STMT_PERFORM;
+ 						new->lineno   = plpgsql_location_to_lineno(@1, yyscanner);
++						new->location = @1;
+ 						new->stmtid = ++plpgsql_curr_compile->nstatements;
+ 						plpgsql_push_back_token(K_PERFORM, &yylval, &yylloc, yyscanner);
+ 
+@@ -938,6 +941,7 @@
+ 						new = palloc0(sizeof(PLpgSQL_stmt_call));
+ 						new->cmd_type = PLPGSQL_STMT_CALL;
+ 						new->lineno = plpgsql_location_to_lineno(@1, yyscanner);
++						new->location = @1;
+ 						new->stmtid = ++plpgsql_curr_compile->nstatements;
+ 						plpgsql_push_back_token(K_CALL, &yylval, &yylloc, yyscanner);
+ 						new->expr = read_sql_stmt(&yylval, &yylloc, yyscanner);
+@@ -957,6 +961,7 @@
+ 						new = palloc0(sizeof(PLpgSQL_stmt_call));
+ 						new->cmd_type = PLPGSQL_STMT_CALL;
+ 						new->lineno = plpgsql_location_to_lineno(@1, yyscanner);
++						new->location = @1;
+ 						new->stmtid = ++plpgsql_curr_compile->nstatements;
+ 						plpgsql_push_back_token(K_DO, &yylval, &yylloc, yyscanner);
+ 						new->expr = read_sql_stmt(&yylval, &yylloc, yyscanner);
+@@ -996,6 +1001,7 @@
+ 						new = palloc0(sizeof(PLpgSQL_stmt_assign));
+ 						new->cmd_type = PLPGSQL_STMT_ASSIGN;
+ 						new->lineno = plpgsql_location_to_lineno(@1, yyscanner);
++						new->location = @1;
+ 						new->stmtid = ++plpgsql_curr_compile->nstatements;
+ 						new->varno = $1.datum->dno;
+ 						/* Push back the head name to include it in the stmt */
+@@ -1019,6 +1025,7 @@
+ 						new = palloc0(sizeof(PLpgSQL_stmt_getdiag));
+ 						new->cmd_type = PLPGSQL_STMT_GETDIAG;
+ 						new->lineno = plpgsql_location_to_lineno(@1, yyscanner);
++						new->location = @1;
+ 						new->stmtid = ++plpgsql_curr_compile->nstatements;
+ 						new->is_stacked = $2;
+ 						new->diag_items = $4;
+@@ -1195,6 +1202,7 @@
+ 						new = palloc0(sizeof(PLpgSQL_stmt_if));
+ 						new->cmd_type = PLPGSQL_STMT_IF;
+ 						new->lineno = plpgsql_location_to_lineno(@1, yyscanner);
++						new->location = @1;
+ 						new->stmtid = ++plpgsql_curr_compile->nstatements;
+ 						new->cond = $2;
+ 						new->then_body = $3;
+@@ -1215,6 +1223,7 @@
+ 
+ 						new = palloc0(sizeof(PLpgSQL_if_elsif));
+ 						new->lineno = plpgsql_location_to_lineno(@2, yyscanner);
++						new->location = @2;
+ 						new->cond = $3;
+ 						new->stmts = $4;
+ 
+@@ -1268,6 +1277,7 @@
+ 						PLpgSQL_case_when *new = palloc(sizeof(PLpgSQL_case_when));
+ 
+ 						new->lineno	= plpgsql_location_to_lineno(@1, yyscanner);
++						new->location = @1;
+ 						new->expr = $2;
+ 						new->stmts = $3;
+ 						$$ = new;
+@@ -1300,6 +1310,7 @@
+ 						new = palloc0(sizeof(PLpgSQL_stmt_loop));
+ 						new->cmd_type = PLPGSQL_STMT_LOOP;
+ 						new->lineno = plpgsql_location_to_lineno(@2, yyscanner);
++						new->location = @2;
+ 						new->stmtid = ++plpgsql_curr_compile->nstatements;
+ 						new->label = $1;
+ 						new->body = $3.stmts;
+@@ -1318,6 +1329,7 @@
+ 						new = palloc0(sizeof(PLpgSQL_stmt_while));
+ 						new->cmd_type = PLPGSQL_STMT_WHILE;
+ 						new->lineno = plpgsql_location_to_lineno(@2, yyscanner);
++						new->location = @2;
+ 						new->stmtid	= ++plpgsql_curr_compile->nstatements;
+ 						new->label = $1;
+ 						new->cond = $3;
+@@ -1339,6 +1351,7 @@
+ 
+ 							new = (PLpgSQL_stmt_fori *) $3;
+ 							new->lineno = plpgsql_location_to_lineno(@2, yyscanner);
++							new->location = @2;
+ 							new->label = $1;
+ 							new->body = $4.stmts;
+ 							$$ = (PLpgSQL_stmt *) new;
+@@ -1353,6 +1366,7 @@
+ 							/* forq is the common supertype of all three */
+ 							new = (PLpgSQL_stmt_forq *) $3;
+ 							new->lineno = plpgsql_location_to_lineno(@2, yyscanner);
++							new->location = @2;
+ 							new->label = $1;
+ 							new->body = $4.stmts;
+ 							$$ = (PLpgSQL_stmt *) new;
+@@ -1678,6 +1692,7 @@
+ 						new = palloc0(sizeof(PLpgSQL_stmt_foreach_a));
+ 						new->cmd_type = PLPGSQL_STMT_FOREACH_A;
+ 						new->lineno = plpgsql_location_to_lineno(@2, yyscanner);
++						new->location = @2;
+ 						new->stmtid = ++plpgsql_curr_compile->nstatements;
+ 						new->label = $1;
+ 						new->slice = $4;
+@@ -1728,6 +1743,7 @@
+ 						new->stmtid = ++plpgsql_curr_compile->nstatements;
+ 						new->is_exit = $1;
+ 						new->lineno	= plpgsql_location_to_lineno(@1, yyscanner);
++						new->location = @1;
+ 						new->label = $2;
+ 						new->cond = $3;
+ 
+@@ -1817,6 +1833,7 @@
+ 
+ 						new->cmd_type = PLPGSQL_STMT_RAISE;
+ 						new->lineno = plpgsql_location_to_lineno(@1, yyscanner);
++						new->location = @1;
+ 						new->stmtid	= ++plpgsql_curr_compile->nstatements;
+ 						new->elog_level = ERROR;	/* default */
+ 						new->condname = NULL;
+@@ -1963,6 +1980,7 @@
+ 
+ 						new->cmd_type = PLPGSQL_STMT_ASSERT;
+ 						new->lineno = plpgsql_location_to_lineno(@1, yyscanner);
++						new->location = @1;
+ 						new->stmtid = ++plpgsql_curr_compile->nstatements;
+ 
+ 						new->cond = read_sql_expression2(',', ';',
+@@ -2048,6 +2066,7 @@
+ 						new = palloc(sizeof(PLpgSQL_stmt_dynexecute));
+ 						new->cmd_type = PLPGSQL_STMT_DYNEXECUTE;
+ 						new->lineno = plpgsql_location_to_lineno(@1, yyscanner);
++						new->location = @1;
+ 						new->stmtid = ++plpgsql_curr_compile->nstatements;
+ 						new->query = expr;
+ 						new->into = false;
+@@ -2106,6 +2125,7 @@
+ 						new = palloc0(sizeof(PLpgSQL_stmt_open));
+ 						new->cmd_type = PLPGSQL_STMT_OPEN;
+ 						new->lineno = plpgsql_location_to_lineno(@1, yyscanner);
++						new->location = @1;
+ 						new->stmtid = ++plpgsql_curr_compile->nstatements;
+ 						new->curvar = $2->dno;
+ 						new->cursor_options = CURSOR_OPT_FAST_PLAN;
+@@ -2231,6 +2251,7 @@
+ 						new = palloc(sizeof(PLpgSQL_stmt_close));
+ 						new->cmd_type = PLPGSQL_STMT_CLOSE;
+ 						new->lineno = plpgsql_location_to_lineno(@1, yyscanner);
++						new->location = @1;
+ 						new->stmtid = ++plpgsql_curr_compile->nstatements;
+ 						new->curvar = $2->dno;
+ 
+@@ -2252,6 +2273,7 @@
+ 						new = palloc(sizeof(PLpgSQL_stmt_commit));
+ 						new->cmd_type = PLPGSQL_STMT_COMMIT;
+ 						new->lineno = plpgsql_location_to_lineno(@1, yyscanner);
++						new->location = @1;
+ 						new->stmtid = ++plpgsql_curr_compile->nstatements;
+ 						new->chain = $2;
+ 
+@@ -2266,6 +2288,7 @@
+ 						new = palloc(sizeof(PLpgSQL_stmt_rollback));
+ 						new->cmd_type = PLPGSQL_STMT_ROLLBACK;
+ 						new->lineno = plpgsql_location_to_lineno(@1, yyscanner);
++						new->location = @1;
+ 						new->stmtid = ++plpgsql_curr_compile->nstatements;
+ 						new->chain = $2;
+ 
+@@ -2376,6 +2399,7 @@
+ 
+ 						new = palloc0(sizeof(PLpgSQL_exception));
+ 						new->lineno = plpgsql_location_to_lineno(@1, yyscanner);
++						new->location = @1;
+ 						new->conditions = $2;
+ 						new->action = $4;
+ 
